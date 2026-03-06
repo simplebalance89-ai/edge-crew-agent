@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edge Crew — The Analyst</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+    --bg:#0D0D1A;--bg2:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);
+    --gold:#D4A017;--gold-light:#FFE082;--gold-subtle:rgba(212,160,23,0.15);
+    --text:#fff;--text2:rgba(255,255,255,0.6);--text3:rgba(255,255,255,0.3);
+    --green:#10B981;--red:#EF4444;
+}
+body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+
+/* TOPBAR */
+.topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 24px;border-bottom:1px solid var(--border);
+    background:rgba(0,0,0,0.4);backdrop-filter:blur(12px);flex-shrink:0;
+}
+.topbar-left{display:flex;align-items:center;gap:16px;}
+.topbar-title{font-family:'Playfair Display',serif;font-size:18px;
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.topbar-subtitle{font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
+.topbar-link{font-size:12px;color:rgba(212,160,23,0.6);text-decoration:none;}
+.topbar-link:hover{color:var(--gold);}
+
+/* MODEL SELECTOR */
+.model-bar{
+    display:flex;align-items:center;gap:8px;padding:10px 24px;
+    border-bottom:1px solid var(--border);background:rgba(0,0,0,0.2);flex-shrink:0;
+    overflow-x:auto;
+}
+.model-btn{
+    padding:6px 14px;border-radius:20px;border:1px solid var(--border);
+    background:transparent;color:var(--text2);font-family:'Nunito',sans-serif;
+    font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;
+}
+.model-btn:hover{border-color:rgba(212,160,23,0.4);color:var(--text);}
+.model-btn.active{background:var(--gold-subtle);border-color:var(--gold);color:var(--gold);}
+.model-btn .model-desc{display:none;}
+
+/* CHAT AREA */
+.chat-container{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px;}
+.chat-container::-webkit-scrollbar{width:6px;}
+.chat-container::-webkit-scrollbar-track{background:transparent;}
+.chat-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px;}
+
+.msg{max-width:85%;padding:14px 18px;border-radius:14px;font-size:14px;line-height:1.6;animation:fadeIn 0.2s ease;}
+.msg-user{
+    align-self:flex-end;background:linear-gradient(135deg,rgba(212,160,23,0.15),rgba(212,160,23,0.08));
+    border:1px solid rgba(212,160,23,0.2);color:var(--text);
+}
+.msg-assistant{
+    align-self:flex-start;background:var(--bg2);border:1px solid var(--border);color:var(--text);
+}
+.msg-assistant .msg-model{font-size:10px;color:var(--gold);opacity:0.6;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+.msg-assistant pre{background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:12px;overflow-x:auto;margin:8px 0;font-size:13px;}
+.msg-assistant code{font-size:13px;}
+.msg-assistant p{margin-bottom:8px;}
+.msg-assistant p:last-child{margin-bottom:0;}
+.msg-assistant ul,.msg-assistant ol{margin:8px 0 8px 20px;}
+.msg-assistant li{margin-bottom:4px;}
+.msg-assistant strong{color:var(--gold-light);}
+.msg-assistant h1,.msg-assistant h2,.msg-assistant h3{color:var(--gold);margin:12px 0 6px;font-family:'Playfair Display',serif;}
+.msg-assistant h3{font-size:15px;}
+
+.msg-system{
+    align-self:center;background:transparent;border:none;
+    color:var(--text3);font-size:12px;text-align:center;padding:8px;
+}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* TYPING INDICATOR */
+.typing{display:flex;gap:4px;padding:8px 0;}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:0.3;animation:blink 1.4s infinite;}
+.typing span:nth-child(2){animation-delay:0.2s;}
+.typing span:nth-child(3){animation-delay:0.4s;}
+@keyframes blink{0%,80%,100%{opacity:0.3;}40%{opacity:1;}}
+
+/* INPUT */
+.input-bar{
+    padding:16px 24px;border-top:1px solid var(--border);
+    background:rgba(0,0,0,0.3);backdrop-filter:blur(12px);flex-shrink:0;
+}
+.input-row{display:flex;gap:10px;max-width:900px;margin:0 auto;}
+.input-field{
+    flex:1;padding:12px 16px;border-radius:12px;border:1px solid var(--border);
+    background:var(--bg2);color:var(--text);font-family:'Nunito',sans-serif;
+    font-size:14px;outline:none;resize:none;min-height:46px;max-height:150px;
+}
+.input-field:focus{border-color:rgba(212,160,23,0.4);}
+.input-field::placeholder{color:var(--text3);}
+.send-btn{
+    padding:12px 20px;border-radius:12px;border:none;
+    background:linear-gradient(135deg,var(--gold),#B8860B);color:var(--bg);
+    font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;
+    cursor:pointer;transition:all 0.2s;white-space:nowrap;
+}
+.send-btn:hover{transform:scale(1.03);box-shadow:0 4px 20px rgba(212,160,23,0.4);}
+.send-btn:disabled{opacity:0.4;cursor:default;transform:none;box-shadow:none;}
+
+/* WELCOME */
+.welcome{text-align:center;padding:60px 20px;max-width:600px;margin:0 auto;}
+.welcome h2{font-family:'Playfair Display',serif;font-size:28px;
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;}
+.welcome p{color:var(--text2);font-size:14px;line-height:1.6;margin-bottom:20px;}
+.prompt-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+.prompt-chip{
+    padding:8px 16px;border-radius:20px;border:1px solid var(--border);
+    background:var(--bg2);color:var(--text2);font-size:12px;cursor:pointer;
+    transition:all 0.2s;
+}
+.prompt-chip:hover{border-color:rgba(212,160,23,0.4);color:var(--text);background:var(--gold-subtle);}
+
+/* FOOTER */
+.footer-note{text-align:center;font-size:10px;color:var(--text3);padding:6px;flex-shrink:0;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+    .model-bar{padding:8px 12px;}
+    .chat-container{padding:16px 12px;}
+    .input-bar{padding:12px;}
+    .msg{max-width:95%;}
+    .welcome h2{font-size:22px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="topbar-left">
+        <div>
+            <div class="topbar-title">THE ANALYST</div>
+            <div class="topbar-subtitle">Edge Crew AI</div>
+        </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+        <span id="tokenCount" style="font-size:11px;color:var(--text3);"></span>
+        <button onclick="clearChat()" style="background:none;border:1px solid var(--border);color:var(--text3);padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-family:'Nunito',sans-serif;">Clear</button>
+    </div>
+</div>
+
+<div class="model-bar" id="modelBar">
+    <span style="font-size:11px;color:var(--text3);margin-right:4px;white-space:nowrap;">MODEL:</span>
+</div>
+
+<div class="chat-container" id="chatContainer">
+    <div class="welcome" id="welcome">
+        <h2>The Analyst</h2>
+        <p>Your AI sports betting analyst. Pick a model, ask anything — matchups, spreads, props, bankroll strategy. I'll give it to you straight.</p>
+        <div class="prompt-chips">
+            <div class="prompt-chip" onclick="usePrompt(this)">Break down tonight's NBA slate</div>
+            <div class="prompt-chip" onclick="usePrompt(this)">Is this line worth taking? Lakers -3.5 at -110</div>
+            <div class="prompt-chip" onclick="usePrompt(this)">Best value props for UFC this weekend</div>
+            <div class="prompt-chip" onclick="usePrompt(this)">Kelly criterion — how should I size this 3-leg parlay?</div>
+            <div class="prompt-chip" onclick="usePrompt(this)">Devil's advocate: why shouldn't I hammer the over?</div>
+        </div>
+    </div>
+</div>
+
+<div class="input-bar">
+    <div class="input-row">
+        <textarea class="input-field" id="userInput" placeholder="Ask The Analyst..." rows="1" onkeydown="handleKey(event)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">SEND</button>
+    </div>
+</div>
+
+<div class="footer-note">Edge Crew &middot; Powered by Azure OpenAI &middot; Not financial advice</div>
+
+<script>
+var currentModel = '';
+var chatHistory = [];
+var isStreaming = false;
+
+// Auto-resize textarea
+var input = document.getElementById('userInput');
+input.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+});
+
+function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+}
+
+// Load models
+fetch('/api/models').then(function(r) { return r.json(); }).then(function(data) {
+    var bar = document.getElementById('modelBar');
+    currentModel = data.default;
+    data.models.forEach(function(m) {
+        var btn = document.createElement('button');
+        btn.className = 'model-btn' + (m.id === currentModel ? ' active' : '');
+        btn.setAttribute('data-model', m.id);
+        btn.innerHTML = m.label;
+        btn.title = m.desc;
+        btn.onclick = function() {
+            currentModel = m.id;
+            document.querySelectorAll('.model-btn').forEach(function(b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+        };
+        bar.appendChild(btn);
+    });
+});
+
+function usePrompt(el) {
+    document.getElementById('userInput').value = el.textContent;
+    sendMessage();
+}
+
+function clearChat() {
+    chatHistory = [];
+    document.getElementById('chatContainer').innerHTML =
+        '<div class="welcome" id="welcome">' +
+        '<h2>The Analyst</h2>' +
+        '<p>Cleared. Pick a model, fire away.</p></div>';
+    document.getElementById('tokenCount').textContent = '';
+}
+
+function addMessage(role, content, model) {
+    var container = document.getElementById('chatContainer');
+    var welcome = document.getElementById('welcome');
+    if (welcome) welcome.remove();
+
+    var div = document.createElement('div');
+    div.className = 'msg msg-' + role;
+
+    if (role === 'assistant') {
+        var modelTag = document.createElement('div');
+        modelTag.className = 'msg-model';
+        modelTag.textContent = model || currentModel;
+        div.appendChild(modelTag);
+
+        var contentDiv = document.createElement('div');
+        contentDiv.className = 'msg-content';
+        contentDiv.innerHTML = renderMarkdown(content);
+        div.appendChild(contentDiv);
+    } else {
+        div.textContent = content;
+    }
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+}
+
+function renderMarkdown(text) {
+    if (!text) return '';
+    // Basic markdown rendering
+    var html = text
+        .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>')
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+        .replace(/^- (.+)$/gm, '<li>$1</li>')
+        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br>');
+    return '<p>' + html + '</p>';
+}
+
+function sendMessage() {
+    if (isStreaming) return;
+    var text = input.value.trim();
+    if (!text) return;
+
+    input.value = '';
+    input.style.height = 'auto';
+
+    addMessage('user', text);
+    chatHistory.push({role: 'user', content: text});
+
+    isStreaming = true;
+    document.getElementById('sendBtn').disabled = true;
+
+    // Create assistant message container
+    var container = document.getElementById('chatContainer');
+    var div = document.createElement('div');
+    div.className = 'msg msg-assistant';
+
+    var modelTag = document.createElement('div');
+    modelTag.className = 'msg-model';
+    modelTag.textContent = currentModel;
+    div.appendChild(modelTag);
+
+    var contentDiv = document.createElement('div');
+    contentDiv.className = 'msg-content';
+    contentDiv.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+    div.appendChild(contentDiv);
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+
+    var fullContent = '';
+
+    fetch('/api/chat', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            messages: chatHistory,
+            model: currentModel,
+            stream: true
+        })
+    }).then(function(response) {
+        var reader = response.body.getReader();
+        var decoder = new TextDecoder();
+        var buffer = '';
+
+        function read() {
+            reader.read().then(function(result) {
+                if (result.done) {
+                    finish();
+                    return;
+                }
+                buffer += decoder.decode(result.value, {stream: true});
+                var lines = buffer.split('\n');
+                buffer = lines.pop();
+
+                lines.forEach(function(line) {
+                    if (line.startsWith('data: ')) {
+                        var payload = line.substring(6);
+                        if (payload === '[DONE]') {
+                            finish();
+                            return;
+                        }
+                        try {
+                            var data = JSON.parse(payload);
+                            if (data.error) {
+                                contentDiv.innerHTML = '<p style="color:var(--red);">Error: ' + data.error + '</p>';
+                                finish();
+                                return;
+                            }
+                            if (data.content) {
+                                fullContent += data.content;
+                                contentDiv.innerHTML = renderMarkdown(fullContent);
+                                container.scrollTop = container.scrollHeight;
+                            }
+                        } catch(e) {}
+                    }
+                });
+                read();
+            });
+        }
+        read();
+    }).catch(function(err) {
+        contentDiv.innerHTML = '<p style="color:var(--red);">Connection error. Try again.</p>';
+        finish();
+    });
+
+    function finish() {
+        if (fullContent) {
+            chatHistory.push({role: 'assistant', content: fullContent});
+        }
+        isStreaming = false;
+        document.getElementById('sendBtn').disabled = false;
+        input.focus();
+    }
+}
+</script>
+
+</body>
+</html>
