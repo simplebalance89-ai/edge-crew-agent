@@ -8,10 +8,11 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-    --bg:#0D0D1A;--bg2:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.08);
-    --gold:#D4A017;--gold-light:#FFE082;--gold-subtle:rgba(212,160,23,0.15);
+    --bg:#0D0D1A;--bg2:rgba(255,255,255,0.03);--bg3:rgba(255,255,255,0.06);
+    --border:rgba(255,255,255,0.08);--border-hover:rgba(255,255,255,0.15);
+    --gold:#D4A017;--gold-light:#FFE082;--gold-subtle:rgba(212,160,23,0.12);--gold-glow:rgba(212,160,23,0.25);
     --text:#fff;--text2:rgba(255,255,255,0.6);--text3:rgba(255,255,255,0.3);
-    --green:#10B981;--red:#EF4444;
+    --green:#10B981;--red:#EF4444;--blue:#3B82F6;--purple:#8B5CF6;
 }
 body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
 
@@ -21,35 +22,37 @@ body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-
     padding:14px 24px;border-bottom:1px solid var(--border);
     background:rgba(0,0,0,0.4);backdrop-filter:blur(12px);flex-shrink:0;
 }
-.topbar-left{display:flex;align-items:center;gap:16px;}
 .topbar-title{font-family:'Playfair Display',serif;font-size:18px;
     background:linear-gradient(135deg,var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .topbar-subtitle{font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;}
-.topbar-link{font-size:12px;color:rgba(212,160,23,0.6);text-decoration:none;}
-.topbar-link:hover{color:var(--gold);}
 
-/* MODEL SELECTOR */
-.model-bar{
-    display:flex;align-items:center;gap:8px;padding:10px 24px;
+/* MODE BAR */
+.mode-bar{
+    display:flex;align-items:stretch;gap:6px;padding:10px 24px;
     border-bottom:1px solid var(--border);background:rgba(0,0,0,0.2);flex-shrink:0;
     overflow-x:auto;
 }
-.model-btn{
-    padding:6px 14px;border-radius:20px;border:1px solid var(--border);
+.mode-btn{
+    display:flex;align-items:center;gap:8px;
+    padding:8px 16px;border-radius:10px;border:1px solid var(--border);
     background:transparent;color:var(--text2);font-family:'Nunito',sans-serif;
     font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all 0.2s;
 }
-.model-btn:hover{border-color:rgba(212,160,23,0.4);color:var(--text);}
-.model-btn.active{background:var(--gold-subtle);border-color:var(--gold);color:var(--gold);}
-.model-btn .model-desc{display:none;}
+.mode-btn:hover{border-color:var(--border-hover);color:var(--text);background:var(--bg3);}
+.mode-btn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-subtle);}
+.mode-icon{font-size:16px;line-height:1;}
+.mode-label{display:flex;flex-direction:column;align-items:flex-start;gap:1px;}
+.mode-name{font-size:12px;font-weight:800;}
+.mode-desc{font-size:10px;font-weight:400;color:var(--text3);opacity:0.8;}
+.mode-btn.active .mode-desc{color:rgba(212,160,23,0.6);}
 
 /* CHAT AREA */
-.chat-container{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px;}
+.chat-container{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px;max-width:900px;width:100%;margin:0 auto;}
 .chat-container::-webkit-scrollbar{width:6px;}
 .chat-container::-webkit-scrollbar-track{background:transparent;}
 .chat-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:3px;}
 
-.msg{max-width:85%;padding:14px 18px;border-radius:14px;font-size:14px;line-height:1.6;animation:fadeIn 0.2s ease;}
+.msg{max-width:85%;padding:14px 18px;border-radius:14px;font-size:14px;line-height:1.6;animation:fadeIn 0.25s ease;}
 .msg-user{
     align-self:flex-end;background:linear-gradient(135deg,rgba(212,160,23,0.15),rgba(212,160,23,0.08));
     border:1px solid rgba(212,160,23,0.2);color:var(--text);
@@ -57,7 +60,15 @@ body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-
 .msg-assistant{
     align-self:flex-start;background:var(--bg2);border:1px solid var(--border);color:var(--text);
 }
-.msg-assistant .msg-model{font-size:10px;color:var(--gold);opacity:0.6;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+.msg-mode-tag{
+    display:inline-block;font-size:10px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;
+    padding:2px 8px;border-radius:6px;margin-bottom:8px;
+}
+.msg-mode-tag.quick{background:rgba(16,185,129,0.15);color:var(--green);}
+.msg-mode-tag.deep{background:rgba(139,92,246,0.15);color:var(--purple);}
+.msg-mode-tag.math{background:rgba(59,130,246,0.15);color:var(--blue);}
+.msg-mode-tag.challenge{background:rgba(239,68,68,0.15);color:var(--red);}
+
 .msg-assistant pre{background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:12px;overflow-x:auto;margin:8px 0;font-size:13px;}
 .msg-assistant code{font-size:13px;}
 .msg-assistant p{margin-bottom:8px;}
@@ -68,14 +79,9 @@ body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-
 .msg-assistant h1,.msg-assistant h2,.msg-assistant h3{color:var(--gold);margin:12px 0 6px;font-family:'Playfair Display',serif;}
 .msg-assistant h3{font-size:15px;}
 
-.msg-system{
-    align-self:center;background:transparent;border:none;
-    color:var(--text3);font-size:12px;text-align:center;padding:8px;
-}
-
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
-/* TYPING INDICATOR */
+/* TYPING */
 .typing{display:flex;gap:4px;padding:8px 0;}
 .typing span{width:6px;height:6px;border-radius:50%;background:var(--gold);opacity:0.3;animation:blink 1.4s infinite;}
 .typing span:nth-child(2){animation-delay:0.2s;}
@@ -105,60 +111,66 @@ body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-
 .send-btn:disabled{opacity:0.4;cursor:default;transform:none;box-shadow:none;}
 
 /* WELCOME */
-.welcome{text-align:center;padding:60px 20px;max-width:600px;margin:0 auto;}
+.welcome{text-align:center;padding:40px 20px;max-width:650px;margin:0 auto;}
 .welcome h2{font-family:'Playfair Display',serif;font-size:28px;
-    background:linear-gradient(135deg,var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;}
-.welcome p{color:var(--text2);font-size:14px;line-height:1.6;margin-bottom:20px;}
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;}
+.welcome p{color:var(--text2);font-size:14px;line-height:1.6;margin-bottom:24px;}
+
+.mode-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;}
+.mode-card{
+    text-align:left;padding:14px 16px;border-radius:12px;border:1px solid var(--border);
+    background:var(--bg2);cursor:pointer;transition:all 0.2s;
+}
+.mode-card:hover{border-color:var(--border-hover);background:var(--bg3);}
+.mode-card-icon{font-size:20px;margin-bottom:6px;}
+.mode-card-name{font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px;}
+.mode-card-desc{font-size:11px;color:var(--text3);line-height:1.4;}
+
 .prompt-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
 .prompt-chip{
     padding:8px 16px;border-radius:20px;border:1px solid var(--border);
-    background:var(--bg2);color:var(--text2);font-size:12px;cursor:pointer;
-    transition:all 0.2s;
+    background:var(--bg2);color:var(--text2);font-size:12px;cursor:pointer;transition:all 0.2s;
 }
 .prompt-chip:hover{border-color:rgba(212,160,23,0.4);color:var(--text);background:var(--gold-subtle);}
 
-/* FOOTER */
 .footer-note{text-align:center;font-size:10px;color:var(--text3);padding:6px;flex-shrink:0;}
 
-/* RESPONSIVE */
 @media(max-width:768px){
-    .model-bar{padding:8px 12px;}
+    .mode-bar{padding:8px 12px;gap:4px;}
+    .mode-desc{display:none;}
     .chat-container{padding:16px 12px;}
     .input-bar{padding:12px;}
     .msg{max-width:95%;}
     .welcome h2{font-size:22px;}
+    .mode-cards{grid-template-columns:1fr;}
 }
 </style>
 </head>
 <body>
 
 <div class="topbar">
-    <div class="topbar-left">
-        <div>
-            <div class="topbar-title">THE ANALYST</div>
-            <div class="topbar-subtitle">Edge Crew AI</div>
-        </div>
+    <div>
+        <div class="topbar-title">THE ANALYST</div>
+        <div class="topbar-subtitle">Edge Crew AI</div>
     </div>
     <div style="display:flex;align-items:center;gap:16px;">
-        <span id="tokenCount" style="font-size:11px;color:var(--text3);"></span>
+        <span id="modeIndicator" style="font-size:11px;color:var(--text3);"></span>
         <button onclick="clearChat()" style="background:none;border:1px solid var(--border);color:var(--text3);padding:6px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-family:'Nunito',sans-serif;">Clear</button>
     </div>
 </div>
 
-<div class="model-bar" id="modelBar">
-    <span style="font-size:11px;color:var(--text3);margin-right:4px;white-space:nowrap;">MODEL:</span>
-</div>
+<div class="mode-bar" id="modeBar"></div>
 
 <div class="chat-container" id="chatContainer">
     <div class="welcome" id="welcome">
         <h2>The Analyst</h2>
-        <p>Your AI sports betting analyst. Pick a model, ask anything — matchups, spreads, props, bankroll strategy. I'll give it to you straight.</p>
+        <p>Your AI sports betting analyst. Pick how you want me to think, then fire away.</p>
+        <div class="mode-cards" id="modeCards"></div>
         <div class="prompt-chips">
-            <div class="prompt-chip" onclick="usePrompt(this)">Break down tonight's NBA slate</div>
-            <div class="prompt-chip" onclick="usePrompt(this)">Is this line worth taking? Lakers -3.5 at -110</div>
-            <div class="prompt-chip" onclick="usePrompt(this)">Best value props for UFC this weekend</div>
-            <div class="prompt-chip" onclick="usePrompt(this)">Kelly criterion — how should I size this 3-leg parlay?</div>
-            <div class="prompt-chip" onclick="usePrompt(this)">Devil's advocate: why shouldn't I hammer the over?</div>
+            <div class="prompt-chip" onclick="usePrompt(this)">Lakers +6.5 tonight — yes or no?</div>
+            <div class="prompt-chip" onclick="usePrompt(this)">Break down Knicks vs 76ers</div>
+            <div class="prompt-chip" onclick="usePrompt(this)">EV on Chiefs -3 at -110, I think 56% cover rate</div>
+            <div class="prompt-chip" onclick="usePrompt(this)">Talk me out of this 4-leg parlay</div>
         </div>
     </div>
 </div>
@@ -170,14 +182,28 @@ body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-
     </div>
 </div>
 
-<div class="footer-note">Edge Crew &middot; Powered by Azure OpenAI &middot; Not financial advice</div>
+<div class="footer-note">Edge Crew &middot; AI-Powered Analysis &middot; Not financial advice</div>
 
 <script>
-var currentModel = '';
+var currentMode = '';
 var chatHistory = [];
 var isStreaming = false;
+var modesData = {};
 
-// Auto-resize textarea
+var MODE_ICONS = {
+    'zap': '\u26A1',
+    'microscope': '\uD83D\uDD2C',
+    'calculator': '\uD83E\uDDEE',
+    'shield': '\uD83D\uDEE1\uFE0F'
+};
+
+var MODE_COLORS = {
+    'quick': 'var(--green)',
+    'deep': 'var(--purple)',
+    'math': 'var(--blue)',
+    'challenge': 'var(--red)'
+};
+
 var input = document.getElementById('userInput');
 input.addEventListener('input', function() {
     this.style.height = 'auto';
@@ -185,46 +211,72 @@ input.addEventListener('input', function() {
 });
 
 function handleKey(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function setMode(modeId) {
+    currentMode = modeId;
+    document.querySelectorAll('.mode-btn').forEach(function(b) { b.classList.remove('active'); });
+    var active = document.querySelector('.mode-btn[data-mode="' + modeId + '"]');
+    if (active) active.classList.add('active');
+    var m = modesData[modeId];
+    if (m) {
+        document.getElementById('modeIndicator').textContent = MODE_ICONS[m.icon] + ' ' + m.label;
     }
 }
 
-// Load models
-fetch('/api/models').then(function(r) { return r.json(); }).then(function(data) {
-    var bar = document.getElementById('modelBar');
-    currentModel = data.default;
-    data.models.forEach(function(m) {
+// Load modes
+fetch('/api/modes').then(function(r) { return r.json(); }).then(function(data) {
+    currentMode = data.default;
+    var bar = document.getElementById('modeBar');
+    var cards = document.getElementById('modeCards');
+
+    data.modes.forEach(function(m) {
+        modesData[m.id] = m;
+
+        // Top bar buttons
         var btn = document.createElement('button');
-        btn.className = 'model-btn' + (m.id === currentModel ? ' active' : '');
-        btn.setAttribute('data-model', m.id);
-        btn.innerHTML = m.label;
-        btn.title = m.desc;
-        btn.onclick = function() {
-            currentModel = m.id;
-            document.querySelectorAll('.model-btn').forEach(function(b) { b.classList.remove('active'); });
-            btn.classList.add('active');
-        };
+        btn.className = 'mode-btn' + (m.id === currentMode ? ' active' : '');
+        btn.setAttribute('data-mode', m.id);
+        btn.innerHTML = '<span class="mode-icon">' + MODE_ICONS[m.icon] + '</span>' +
+            '<span class="mode-label"><span class="mode-name">' + m.label + '</span>' +
+            '<span class="mode-desc">' + m.desc + '</span></span>';
+        btn.onclick = function() { setMode(m.id); };
         bar.appendChild(btn);
+
+        // Welcome cards
+        var card = document.createElement('div');
+        card.className = 'mode-card';
+        card.innerHTML = '<div class="mode-card-icon">' + MODE_ICONS[m.icon] + '</div>' +
+            '<div class="mode-card-name">' + m.label + '</div>' +
+            '<div class="mode-card-desc">' + m.desc + '</div>';
+        card.onclick = function() { setMode(m.id); input.focus(); };
+        cards.appendChild(card);
     });
+
+    document.getElementById('modeIndicator').textContent = MODE_ICONS[modesData[currentMode].icon] + ' ' + modesData[currentMode].label;
 });
 
 function usePrompt(el) {
+    // Auto-select mode based on prompt content
+    var text = el.textContent.toLowerCase();
+    if (text.indexOf('break down') >= 0 || text.indexOf('analyze') >= 0) setMode('deep');
+    else if (text.indexOf('ev') >= 0 || text.indexOf('kelly') >= 0 || text.indexOf('%') >= 0) setMode('math');
+    else if (text.indexOf('talk me out') >= 0 || text.indexOf('devil') >= 0) setMode('challenge');
+    else setMode('quick');
+
     document.getElementById('userInput').value = el.textContent;
     sendMessage();
 }
 
 function clearChat() {
     chatHistory = [];
-    document.getElementById('chatContainer').innerHTML =
-        '<div class="welcome" id="welcome">' +
-        '<h2>The Analyst</h2>' +
-        '<p>Cleared. Pick a model, fire away.</p></div>';
-    document.getElementById('tokenCount').textContent = '';
+    var container = document.getElementById('chatContainer');
+    container.innerHTML = '<div class="welcome" id="welcome">' +
+        '<h2>The Analyst</h2><p>Cleared. Pick a mode, fire away.</p></div>';
 }
 
-function addMessage(role, content, model) {
+function addMessage(role, content, mode) {
     var container = document.getElementById('chatContainer');
     var welcome = document.getElementById('welcome');
     if (welcome) welcome.remove();
@@ -232,16 +284,22 @@ function addMessage(role, content, model) {
     var div = document.createElement('div');
     div.className = 'msg msg-' + role;
 
-    if (role === 'assistant') {
-        var modelTag = document.createElement('div');
-        modelTag.className = 'msg-model';
-        modelTag.textContent = model || currentModel;
-        div.appendChild(modelTag);
+    if (role === 'assistant' && mode) {
+        var tag = document.createElement('div');
+        tag.className = 'msg-mode-tag ' + mode;
+        var m = modesData[mode];
+        tag.textContent = m ? (MODE_ICONS[m.icon] + ' ' + m.label) : mode;
+        div.appendChild(tag);
 
         var contentDiv = document.createElement('div');
         contentDiv.className = 'msg-content';
         contentDiv.innerHTML = renderMarkdown(content);
         div.appendChild(contentDiv);
+    } else if (role === 'assistant') {
+        var contentDiv2 = document.createElement('div');
+        contentDiv2.className = 'msg-content';
+        contentDiv2.innerHTML = renderMarkdown(content);
+        div.appendChild(contentDiv2);
     } else {
         div.textContent = content;
     }
@@ -253,7 +311,6 @@ function addMessage(role, content, model) {
 
 function renderMarkdown(text) {
     if (!text) return '';
-    // Basic markdown rendering
     var html = text
         .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
         .replace(/`([^`]+)`/g, '<code>$1</code>')
@@ -263,7 +320,6 @@ function renderMarkdown(text) {
         .replace(/^## (.+)$/gm, '<h2>$1</h2>')
         .replace(/^# (.+)$/gm, '<h1>$1</h1>')
         .replace(/^- (.+)$/gm, '<li>$1</li>')
-        .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
         .replace(/\n\n/g, '</p><p>')
         .replace(/\n/g, '<br>');
     return '<p>' + html + '</p>';
@@ -276,6 +332,7 @@ function sendMessage() {
 
     input.value = '';
     input.style.height = 'auto';
+    var sendMode = currentMode;
 
     addMessage('user', text);
     chatHistory.push({role: 'user', content: text});
@@ -283,15 +340,15 @@ function sendMessage() {
     isStreaming = true;
     document.getElementById('sendBtn').disabled = true;
 
-    // Create assistant message container
     var container = document.getElementById('chatContainer');
     var div = document.createElement('div');
     div.className = 'msg msg-assistant';
 
-    var modelTag = document.createElement('div');
-    modelTag.className = 'msg-model';
-    modelTag.textContent = currentModel;
-    div.appendChild(modelTag);
+    var tag = document.createElement('div');
+    tag.className = 'msg-mode-tag ' + sendMode;
+    var m = modesData[sendMode];
+    tag.textContent = m ? (MODE_ICONS[m.icon] + ' ' + m.label) : sendMode;
+    div.appendChild(tag);
 
     var contentDiv = document.createElement('div');
     contentDiv.className = 'msg-content';
@@ -306,11 +363,7 @@ function sendMessage() {
     fetch('/api/chat', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            messages: chatHistory,
-            model: currentModel,
-            stream: true
-        })
+        body: JSON.stringify({ messages: chatHistory, mode: sendMode, stream: true })
     }).then(function(response) {
         var reader = response.body.getReader();
         var decoder = new TextDecoder();
@@ -318,10 +371,7 @@ function sendMessage() {
 
         function read() {
             reader.read().then(function(result) {
-                if (result.done) {
-                    finish();
-                    return;
-                }
+                if (result.done) { finish(); return; }
                 buffer += decoder.decode(result.value, {stream: true});
                 var lines = buffer.split('\n');
                 buffer = lines.pop();
@@ -329,10 +379,7 @@ function sendMessage() {
                 lines.forEach(function(line) {
                     if (line.startsWith('data: ')) {
                         var payload = line.substring(6);
-                        if (payload === '[DONE]') {
-                            finish();
-                            return;
-                        }
+                        if (payload === '[DONE]') { finish(); return; }
                         try {
                             var data = JSON.parse(payload);
                             if (data.error) {
@@ -358,9 +405,7 @@ function sendMessage() {
     });
 
     function finish() {
-        if (fullContent) {
-            chatHistory.push({role: 'assistant', content: fullContent});
-        }
+        if (fullContent) chatHistory.push({role: 'assistant', content: fullContent});
         isStreaming = false;
         document.getElementById('sendBtn').disabled = false;
         input.focus();

@@ -7,19 +7,54 @@ app = Flask(__name__, static_folder="static")
 AZURE_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT", "")
 AZURE_KEY = os.environ.get("AZURE_OPENAI_KEY", "")
 
-# All available models on pwgcerp-9302-resource
-MODELS = {
-    "gpt-5.2":    {"deployment": "52-instant",    "label": "GPT-5.2",        "desc": "Flagship — deepest analysis"},
-    "gpt-5.1":    {"deployment": "gpt-51-instant", "label": "GPT-5.1",       "desc": "Strong all-rounder"},
-    "gpt-5-mini": {"deployment": "gpt-5-mini",    "label": "GPT-5 Mini",     "desc": "Fast + smart"},
-    "gpt-4.1":    {"deployment": "gpt-4.1",       "label": "GPT-4.1",        "desc": "Reliable workhorse"},
-    "o4-mini":    {"deployment": "o4-mini",        "label": "o4-mini",        "desc": "Reasoning — odds & math"},
-    "gpt-4o":     {"deployment": "gpt-4o",         "label": "GPT-4o",         "desc": "Baseline comparison"},
+# Model deployments on pwgcerp-9302-resource
+DEPLOYMENTS = {
+    "gpt-4.1-mini": {"is_reasoning": False},
+    "gpt-5-mini":   {"is_reasoning": True},
+    "52-instant":   {"is_reasoning": True},   # gpt-5.2
+    "gpt-51-instant": {"is_reasoning": True}, # gpt-5.1
+    "o4-mini":      {"is_reasoning": True},
+    "gpt-4.1":      {"is_reasoning": False},
+    "gpt-4o":       {"is_reasoning": False},
 }
 
-DEFAULT_MODEL = "gpt-5-mini"
+# Modes — user-facing. Each maps to a model + tailored system prompt behavior.
+MODES = {
+    "quick": {
+        "label": "Quick Take",
+        "desc": "Fast, sharp reads. 2-3 sentences. Yes or no.",
+        "icon": "zap",
+        "deployment": "gpt-4.1-mini",
+        "max_tokens": 512,
+        "system_extra": "\n\nMODE: QUICK TAKE. Be extremely concise — 2-3 sentences max. Lead with your position (yes/no/lean), confidence (1-5 units), and one key reason. No lengthy breakdowns.",
+    },
+    "deep": {
+        "label": "Deep Analysis",
+        "desc": "Full matchup breakdowns. Trends, injuries, angles.",
+        "icon": "microscope",
+        "deployment": "52-instant",
+        "max_tokens": 3000,
+        "system_extra": "\n\nMODE: DEEP ANALYSIS. Go deep. Cover matchup context, injuries, trends, line movement, historical angles, and situational spots. Structure your analysis clearly. Give a final verdict with unit sizing and confidence.",
+    },
+    "math": {
+        "label": "Math Mode",
+        "desc": "EV calcs, Kelly criterion, odds breakdowns.",
+        "icon": "calculator",
+        "deployment": "o4-mini",
+        "max_tokens": 2048,
+        "system_extra": "\n\nMODE: MATH. Focus on quantitative analysis. Show your work — expected value calculations, Kelly criterion sizing, implied probability vs true probability, ROI projections. Use actual numbers. Be precise.",
+    },
+    "challenge": {
+        "label": "Devil's Advocate",
+        "desc": "Challenge your picks. Find the holes.",
+        "icon": "shield",
+        "deployment": "gpt-5-mini",
+        "max_tokens": 1500,
+        "system_extra": "\n\nMODE: DEVIL'S ADVOCATE. Your job is to argue AGAINST the user's position. Find every weakness, every risk, every reason the bet loses. Be ruthless but fair. After tearing it apart, give an honest final assessment — is there still value despite the risks, or should they walk away?",
+    },
+}
 
-SYSTEM_PROMPT = """You are The Analyst — Edge Crew's AI sports betting analyst. You work alongside Peter and the crew.
+BASE_SYSTEM_PROMPT = """You are The Analyst — Edge Crew's AI sports betting analyst. You work alongside Peter and the crew.
 
 Your job:
 - Analyze matchups, spreads, totals, and props with sharp, data-driven reasoning
@@ -40,6 +75,8 @@ You know:
 Style: Sharp, confident, conversational. You're part of the crew, not a textbook.
 Keep responses focused — don't ramble. Lead with the take, then back it up."""
 
+DEFAULT_MODE = "quick"
+
 
 def get_client():
     return AzureOpenAI(
@@ -54,34 +91,40 @@ def index():
     return send_from_directory("static", "index.html")
 
 
-@app.route("/api/models")
-def list_models():
+@app.route("/api/modes")
+def list_modes():
     result = []
-    for key, m in MODELS.items():
-        result.append({"id": key, "label": m["label"], "desc": m["desc"]})
-    return jsonify({"models": result, "default": DEFAULT_MODEL})
+    for key, m in MODES.items():
+        result.append({"id": key, "label": m["label"], "desc": m["desc"], "icon": m["icon"]})
+    return jsonify({"modes": result, "default": DEFAULT_MODE})
 
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
     data = request.json or {}
     messages = data.get("messages", [])
-    model_key = data.get("model", DEFAULT_MODEL)
+    mode_key = data.get("mode", DEFAULT_MODE)
     stream = data.get("stream", True)
 
-    if model_key not in MODELS:
-        return jsonify({"error": f"Unknown model: {model_key}"}), 400
+    if mode_key not in MODES:
+        return jsonify({"error": f"Unknown mode: {mode_key}"}), 400
 
-    deployment = MODELS[model_key]["deployment"]
-    is_reasoning = model_key in ("o4-mini", "gpt-5-mini", "gpt-5.2", "gpt-5.1")
+    mode = MODES[mode_key]
+    deployment = mode["deployment"]
+    deploy_info = DEPLOYMENTS[deployment]
+    is_reasoning = deploy_info["is_reasoning"]
     client = get_client()
 
-    if is_reasoning:
-        full_messages = [{"role": "developer", "content": SYSTEM_PROMPT}] + messages
-    else:
-        full_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages
+    system_content = BASE_SYSTEM_PROMPT + mode["system_extra"]
+    sys_role = "developer" if deployment == "o4-mini" else "system"
 
-    base_params = {"model": deployment, "messages": full_messages, "max_completion_tokens": 2048}
+    full_messages = [{"role": sys_role, "content": system_content}] + messages
+
+    base_params = {
+        "model": deployment,
+        "messages": full_messages,
+        "max_completion_tokens": mode["max_tokens"],
+    }
     if not is_reasoning:
         base_params["temperature"] = 0.7
 
@@ -110,14 +153,14 @@ def chat():
                 "completion_tokens": response.usage.completion_tokens,
                 "total_tokens": response.usage.total_tokens,
             }
-            return jsonify({"content": content, "model": model_key, "usage": usage})
+            return jsonify({"content": content, "mode": mode_key, "usage": usage})
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
 
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok", "models": list(MODELS.keys())})
+    return jsonify({"status": "ok", "modes": list(MODES.keys())})
 
 
 if __name__ == "__main__":
