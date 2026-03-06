@@ -7,24 +7,20 @@ app = Flask(__name__, static_folder="static")
 AZURE_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT", "")
 AZURE_KEY = os.environ.get("AZURE_OPENAI_KEY", "")
 
-# Model deployments on pwgcerp-9302-resource
+# Active deployments on pwgcerp-9302-resource (post-benchmark)
 DEPLOYMENTS = {
-    "gpt-4.1-mini": {"is_reasoning": False},
-    "gpt-5-mini":   {"is_reasoning": True},
-    "52-instant":   {"is_reasoning": True},   # gpt-5.2
-    "gpt-51-instant": {"is_reasoning": True}, # gpt-5.1
-    "o4-mini":      {"is_reasoning": True},
-    "gpt-4.1":      {"is_reasoning": False},
-    "gpt-4o":       {"is_reasoning": False},
+    "gpt-4.1":       {"is_reasoning": False},
+    "gpt-51-instant": {"is_reasoning": True},  # GPT-5.1 — The Analyst's brain
+    "o4-mini":       {"is_reasoning": True},    # Reasoning — math specialist
 }
 
-# Modes — user-facing. Each maps to a model + tailored system prompt behavior.
+# Modes — user picks how The Analyst thinks, we route to the optimal model
 MODES = {
     "quick": {
         "label": "Quick Take",
         "desc": "Fast, sharp reads. 2-3 sentences. Yes or no.",
         "icon": "zap",
-        "deployment": "gpt-4.1-mini",
+        "deployment": "gpt-4.1",
         "max_tokens": 512,
         "system_extra": "\n\nMODE: QUICK TAKE. Be extremely concise — 2-3 sentences max. Lead with your position (yes/no/lean), confidence (1-5 units), and one key reason. No lengthy breakdowns.",
     },
@@ -32,7 +28,7 @@ MODES = {
         "label": "Deep Analysis",
         "desc": "Full matchup breakdowns. Trends, injuries, angles.",
         "icon": "microscope",
-        "deployment": "gpt-4.1",
+        "deployment": "gpt-51-instant",
         "max_tokens": 3000,
         "system_extra": "\n\nMODE: DEEP ANALYSIS. Go deep. Cover matchup context, injuries, trends, line movement, historical angles, and situational spots. Structure your analysis clearly. Give a final verdict with unit sizing and confidence.",
     },
@@ -41,15 +37,15 @@ MODES = {
         "desc": "EV calcs, Kelly criterion, odds breakdowns.",
         "icon": "calculator",
         "deployment": "o4-mini",
-        "max_tokens": 2048,
+        "max_tokens": 4096,
         "system_extra": "\n\nMODE: MATH. Focus on quantitative analysis. Show your work — expected value calculations, Kelly criterion sizing, implied probability vs true probability, ROI projections. Use actual numbers. Be precise.",
     },
     "challenge": {
         "label": "Devil's Advocate",
         "desc": "Challenge your picks. Find the holes.",
         "icon": "shield",
-        "deployment": "gpt-4.1",
-        "max_tokens": 1500,
+        "deployment": "gpt-51-instant",
+        "max_tokens": 2048,
         "system_extra": "\n\nMODE: DEVIL'S ADVOCATE. Your job is to argue AGAINST the user's position. Find every weakness, every risk, every reason the bet loses. Be ruthless but fair. After tearing it apart, give an honest final assessment — is there still value despite the risks, or should they walk away?",
     },
 }
