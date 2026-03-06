@@ -73,20 +73,22 @@ def chat():
         return jsonify({"error": f"Unknown model: {model_key}"}), 400
 
     deployment = MODELS[model_key]["deployment"]
+    is_reasoning = model_key in ("o4-mini",)
     client = get_client()
 
-    full_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages
+    if is_reasoning:
+        full_messages = [{"role": "developer", "content": SYSTEM_PROMPT}] + messages
+    else:
+        full_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages
+
+    base_params = {"model": deployment, "messages": full_messages, "max_completion_tokens": 2048}
+    if not is_reasoning:
+        base_params["temperature"] = 0.7
 
     if stream:
         def generate():
             try:
-                response = client.chat.completions.create(
-                    model=deployment,
-                    messages=full_messages,
-                    temperature=0.7,
-                    max_tokens=2048,
-                    stream=True,
-                )
+                response = client.chat.completions.create(**base_params, stream=True)
                 for chunk in response:
                     if chunk.choices and chunk.choices[0].delta.content:
                         yield f"data: {json.dumps({'content': chunk.choices[0].delta.content})}\n\n"
@@ -101,12 +103,7 @@ def chat():
         )
     else:
         try:
-            response = client.chat.completions.create(
-                model=deployment,
-                messages=full_messages,
-                temperature=0.7,
-                max_tokens=2048,
-            )
+            response = client.chat.completions.create(**base_params)
             content = response.choices[0].message.content
             usage = {
                 "prompt_tokens": response.usage.prompt_tokens,
