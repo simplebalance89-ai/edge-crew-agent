@@ -73,7 +73,7 @@ def chat():
         return jsonify({"error": f"Unknown model: {model_key}"}), 400
 
     deployment = MODELS[model_key]["deployment"]
-    is_reasoning = model_key in ("o4-mini",)
+    is_reasoning = model_key in ("o4-mini", "gpt-5-mini", "gpt-5.2", "gpt-5.1")
     client = get_client()
 
     if is_reasoning:
